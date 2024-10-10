@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THREE.JS WEB APP</title>
+    <link rel="stylesheet" href="./css/main.css">
+</head>
+
+<body>
+
+  
+    
+ <div class="cds-cad-viewer-container">
+    <div id="canvas">
+        <button id="mergeButton">Temprature</button>
+        <button id="remove">Remove</button>
+    </div>
+     
+</div>
+
+    <script type="importmap">
+         {
+             "imports": {
+                 "three": "./node_modules/three/build/three.module.js",
+                 "three/addons/": "./node_modules/three/examples/jsm/"
+             }
+         }
+      </script>
+    <script type="module">
+        import { completeViewer, create } from './js/src/viewer2.js';
+        create();
+    </script>
+    <script type="module" src="./js/src/light.js"> </script>
+
+
+</body>
+
+</html>
