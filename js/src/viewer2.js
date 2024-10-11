@@ -23,6 +23,11 @@ function create() {
   remove.addEventListener('click', () => {
     completeViewer.remove();
   });
+
+  const get = document.getElementById('get');
+  get.addEventListener('click', () => {
+    completeViewer.get();
+  });
 }
 
 class Viewer {
@@ -96,6 +101,9 @@ console.log('boxCenter',this.gltfBoxCenter);
 
 const helper = new THREE.Box3Helper( this.gltfbox, 'green' );
 this.scene.add( helper );
+setInterval(() => {
+  this.get()
+}, 3000);
 
       this.setupComposer(); // Setup composer after loading
     });
@@ -131,8 +139,8 @@ this.scene.add( helper );
       console.log(roomMesh.id);
       // Set position and colors based on roomMesh id
       if (roomMesh.id == 98 || roomMesh.id == 99 || roomMesh.id == 100) {
-        boxMesh.material.color.set('#27ccf5')
-        boxMesh.material.emissive.set('#27ccf5')
+        boxMesh.material.color.set('#f55027')
+        boxMesh.material.emissive.set('#f55027')
         boxMesh.position.set(boxCenter.x, boxCenter.y, box.min.z);
         console.log('ok',boxMesh);
 
@@ -151,11 +159,12 @@ this.scene.add( helper );
         
         boxMesh.position.set(box.max.x, boxCenter.y, boxCenter.z);
       } else {
-        boxMesh.material.color.set('#f55027')
-        boxMesh.material.emissive.set('#f55027')
+        boxMesh.material.color.set('green')
+        boxMesh.material.emissive.set('green')
 
         boxMesh.position.set(boxCenter.x, boxCenter.y, box.max.z);
       }
+      // for random color
 //       const col=['red','yellow','#0cf752']
 //       const randomElement = Math.floor(Math.random() * col.length);
 // boxMesh.material.color.set(col[randomElement])
@@ -168,12 +177,12 @@ this.scene.add( helper );
       // Tween animations for scale and position
       if( roomMesh.id==102  ||  roomMesh.id==103  ){
         new TWEEN.Tween(boxMesh.position)
-        .to({ x: boxCenter.x, y: boxCenter.y+0.1, z: boxCenter.z }, 2000)
+        .to({ x: boxCenter.x, y: boxCenter.y+0.1, z: boxCenter.z }, 1000)
         .easing(TWEEN.Easing.Linear.None)
         .start();
 
         new TWEEN.Tween(boxMesh.scale)
-        .to({ x: scaleX, y: 0.1, z: scaleZ }, 2000)
+        .to({ x: scaleX, y: 0.1, z: scaleZ }, 1000)
         .easing(TWEEN.Easing.Linear.None)
         .start();
 
@@ -181,23 +190,23 @@ this.scene.add( helper );
       }
       else if( roomMesh.id==98 || roomMesh.id==99){
         new TWEEN.Tween(boxMesh.position)
-        .to({ x: boxCenter.x, y: boxCenter.y+0.1, z: boxCenter.z }, 2000)
+        .to({ x: boxCenter.x, y: boxCenter.y+0.1, z: boxCenter.z }, 1000)
         .easing(TWEEN.Easing.Linear.None)
         .start();
 
         new TWEEN.Tween(boxMesh.scale)
-        .to({ x: scaleX, y: 0.1, z: scaleZ }, 2000)
+        .to({ x: scaleX, y: 0.1, z: scaleZ }, 1000)
         .easing(TWEEN.Easing.Linear.None)
         .start();
 
       }
       else{
         new TWEEN.Tween(boxMesh.scale)
-        .to({ x: scaleX, y: 0.1, z: scaleZ }, 2000)
+        .to({ x: scaleX, y: 0.1, z: scaleZ }, 1000)
         .easing(TWEEN.Easing.Linear.None)
         .start();
         new TWEEN.Tween(boxMesh.position)
-        .to({ x: boxCenter.x, y: boxCenter.y+0.1, z: boxCenter.z }, 2000)
+        .to({ x: boxCenter.x, y: boxCenter.y+0.1, z: boxCenter.z }, 1000)
         .easing(TWEEN.Easing.Linear.None)
         .start();
 
@@ -212,6 +221,11 @@ this.scene.add( helper );
     this.directionalLight2.intensity=3
     console.log(this.merging);
     
+
+
+// for buffer geometry undr the model
+
+
 //     const geometries = [this.merging[0].geometry, 
 //     this.merging[1].geometry,
 //     this.merging[2].geometry,
@@ -250,6 +264,10 @@ this.scene.add( helper );
 // this.scene.add( helper );
 
 //   }
+
+
+//plane mesh for adding vertex color
+
   // const geometry = new THREE.PlaneGeometry( 1, 1 );
   // const material = new THREE.MeshBasicMaterial( {color: 0xffff00, side: THREE.DoubleSide} );
   // const plane = new THREE.Mesh( geometry, material );
@@ -264,7 +282,111 @@ this.scene.add( helper );
   //   .start();
 
   // this.scene.add( plane );
-  }
+
+ 
+  const width = 5, height = 3;
+  const geometry = new THREE.PlaneGeometry(width, height, 10, 10);
+
+  // Create uniforms
+  this.uniforms = {
+      color1: { value: new THREE.Color(0.0, 0.0, 0.0) },//red
+      color2: { value: new THREE.Color(0.0, 0.0, 0.0) },//green
+      color3: { value: new THREE.Color(0.0, 0.0, 0.0) },//blue
+      color4: { value: new THREE.Color(0.0, 0.0, 0.0) },//yellow
+      
+      positionOffset: { value: new THREE.Vector3(0, 0, 0) },
+      divisor: { value: 4.0 },  // Direct float value
+      offset: { value: 0.5 }     // Direct float value
+  };
+
+  this.material = new THREE.ShaderMaterial({
+      vertexShader: `
+      varying vec3 vPosition;
+      uniform vec3 positionOffset;
+      void main() {
+          vPosition = position + positionOffset;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(vPosition, 1);
+      }
+      `,
+      fragmentShader: `
+      varying vec3 vPosition;
+      uniform vec3 color1;
+      uniform vec3 color2;
+      uniform vec3 color3;
+      uniform vec3 color4;
+      uniform float divisor;
+      uniform float offset;
+
+      void main() {
+          vec3 normalizedPos = vPosition / divisor + vec3(offset);
+
+          vec3 blendedColor = mix(
+              mix(color1, color2, normalizedPos.x), 
+              mix(color3, color4, normalizedPos.x), 
+              normalizedPos.y
+          );
+
+          gl_FragColor = vec4(blendedColor, 1.0);
+      }
+      `,
+      uniforms: this.uniforms,
+      // side: THREE.DoubleSide,
+      transparent:true,
+      opacity:0.25
+  });
+
+  // Create mesh
+  this.plane = new THREE.Mesh(geometry, this.material);
+  this.plane.position.set(0, 0, 0);
+  this.plane.rotation.x=-Math.PI/2
+new TWEEN.Tween(this.plane.position)
+.to({x:0,y:1.2,z:0},800)
+    .easing(TWEEN.Easing.Linear.None)
+    .start();
+setTimeout(() => {
+  new TWEEN.Tween(this.uniforms.color1.value)
+  .to({r:0.0, g:0.5, b:0.0},800)
+  .easing(TWEEN.Easing.Linear.None)
+  .start();
+  new TWEEN.Tween(this.uniforms.color2.value)
+  .to({r:0.5, g:0, b:0},800)
+  .easing(TWEEN.Easing.Linear.None)
+  .start();
+  new TWEEN.Tween(this.uniforms.color3.value)
+  .to({r:0.5, g:0.5, b:0.0},800)
+  .easing(TWEEN.Easing.Linear.None)
+  .start();
+  new TWEEN.Tween(this.uniforms.color4.value)
+  .to({r:0.5, g:0.0, b:0.0},800)
+  .easing(TWEEN.Easing.Linear.None)
+  .start();
+
+}, 800);
+
+  this.scene.add(this.plane);
+
+  // this.camera.position.set(0, 5, 15);
+  // this.camera.lookAt(0, 0, 0);
+  // Example of dynamically updating uniform values
+}
+// tweening(){
+// new TWEEN.Tween({ divisor: this.uniforms.divisor.value })
+// .to({ divisor: 3.0 }, 1000)
+// .onUpdate(({ divisor }) => {
+//   this.uniforms.divisor.value = divisor; // Set the uniform directly
+// })
+// .start();
+// this.uniforms.offset.value = Math.random(0.9-0.1)-0.1
+// new TWEEN.Tween({ offset: this.uniforms.offset.value })
+// .to({ offset: 0.1 }, 1000)
+// .onUpdate(({ offset }) => {
+//   this.uniforms.offset.value = offset; // Set the uniform directly
+// })
+// .start();
+
+// }
+
+  
   extractRoomMeshes(model) {
     const roomMeshes = [];
     model.traverse((child) => {
@@ -274,9 +396,27 @@ this.scene.add( helper );
     });
     return roomMeshes;
   }
-  
+  get(){
+
+      new TWEEN.Tween({ divisor: this.uniforms.divisor.value })
+      .to({ divisor: 3.0 }, 500)
+      .onUpdate(({ divisor }) => {
+        this.uniforms.divisor.value = divisor; // Set the uniform directly
+      })
+      .start();
+      this.uniforms.offset.value = Math.random(0.9-0.5)-0.5
+      new TWEEN.Tween({ offset: this.uniforms.offset.value })
+      .to({ offset: 0.4 }, 500)
+      .onUpdate(({ offset }) => {
+        this.uniforms.offset.value = offset; // Set the uniform directly
+      })
+      .start();
+    
+    
+  }
   animate() {
     requestAnimationFrame(this.animate.bind(this));
+  
     TWEEN.update();
     this.render();
   }
